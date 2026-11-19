@@ -1,94 +1,90 @@
 ---
-title: "O problema dos NIF e IBAN errados em listas de clientes e fornecedores"
-description: "Porque é que erros de NIF e IBAN em listas de clientes e fornecedores são comuns, quais são as suas consequências e como uma verificação em lote, com o motivo de cada erro, ajuda a detetá-los antes de chegarem ao processamento."
+title: "O problema dos NIF e IBAN errados nas listas de clientes e fornecedores"
+description: "Porque é que os NIF e IBAN errados chegam às bases de dados, que consequências têm e como se detetam antes de causarem problemas, em Portugal e Espanha."
 ---
 
-# O problema dos NIF e IBAN errados em listas de clientes e fornecedores
+# O problema dos NIF e IBAN errados nas listas de clientes e fornecedores
 
-## Onde começa o problema
+## O problema
 
-Em muitos gabinetes de contabilidade e pequenas empresas, as listas de clientes e fornecedores são construídas ao longo de anos. Os dados entram por formulários em papel, por correio eletrónico, por ficheiros copiados de outros sistemas e por digitação manual. Cada uma destas origens introduz oportunidades para erros: um dígito trocado, um espaço a mais, uma letra no sítio errado, um número truncado ao copiar.
+Quem trabalha com listas de clientes ou fornecedores conhece bem a situação: um ficheiro com centenas de linhas, importado de um formulário, de uma folha de cálculo antiga ou de um sistema de faturação diferente, e com dados que nunca foram verificados. Um número de identificação fiscal (NIF) com um dígito trocado, um IBAN com um espaço no sítio errado ou um caractere a mais são erros banais, mas podem produzir efeitos concretos: faturas devolvidas, pagamentos rejeitados, declarações com dados incorretos e tempo perdido a corrigir registos um a um.
 
-Dois dos campos mais sensíveis são o número de identificação fiscal (NIF) e o identificador bancário internacional (IBAN). O NIF aparece em faturas, declarações e comunicações com a administração fiscal. O IBAN aparece em ordens de pagamento, débitos diretos e reembolsos. Um erro num destes campos raramente se nota no momento em que é introduzido. Costuma aparecer semanas depois, quando uma fatura é devolvida, um pagamento é rejeitado ou uma declaração é notificada com inconsistências.
+O problema não está apenas em erros de digitação. Os dados chegam de muitas fontes: pedidos feitos por e-mail, cópias de documentos, importações de outros programas, preenchimentos manuais em balcão. Cada uma destas fontes introduz a sua forma de erro, e no fim a base de dados contém uma mistura difícil de controlar.
 
-## Porque é que o erro passa despercebido
+## Porque acontecem os erros
 
-O NIF e o IBAN têm uma propriedade útil: contêm um dígito ou par de dígitos de controlo calculado a partir dos restantes. Essa redundância permite detetar muitos erros de digitação sem consultar base de dados nenhuma. Se alguém escreve um número com um dígito trocado, na maioria dos casos o cálculo do controlo deixa de bater certo.
+Os erros mais frequentes podem agrupar-se em poucas famílias:
 
-No entanto, esta verificação não acontece automaticamente. Os programas de faturação nem sempre validam o campo ao gravar, sobretudo quando os dados foram importados de uma folha de cálculo. Uma lista com centenas de linhas é, na prática, revista por olho, e o olho humano não faz contas de módulo 11 ou de módulo 97.
+- Dígitos trocados ou omitidos ao copiar um número de uma fatura para outra.
+- Letras confundidas com números, por exemplo o O e o zero, ou o I e o um.
+- Espaços e hífenes introduzidos de forma inconsistente, o que faz com que a mesma conta apareça escrita de três maneiras diferentes.
+- Colunas deslocadas numa importação, de modo que o IBAN aparece no campo do NIF ou vice-versa.
+- Dados antigos que estavam corretos quando foram recolhidos, mas que já não correspondem ao cliente atual.
 
-## Como funciona a validação do NIF português
+Nem todos estes erros se detetam da mesma forma. Alguns podem ser verificados matematicamente, sem qualquer consulta externa. Outros só se detetam quando alguém confronta o documento original. Um guia prático deve separar bem estas duas situações.
 
-O NIF português tem nove dígitos. O primeiro dígito indica o tipo de entidade (por exemplo, pessoas singulares e coletivas começam por valores diferentes), e o último é o dígito de controlo.
+## Como funciona a validação do NIF
 
-O cálculo é o seguinte:
+O NIF, em Portugal, tem nove dígitos, e o último é um dígito de controlo calculado a partir dos oito anteriores. O cálculo típico consiste em multiplicar cada um dos oito primeiros dígitos por um peso decrescente de 9 a 2, somar os produtos, calcular o resto da divisão desse total por 11 e obter o dígito de controlo como a diferença entre 11 e esse resto. Se o resultado for 10 ou mais, o dígito de controlo considera-se zero.
 
-1. Multiplica-se cada um dos primeiros oito dígitos por um peso decrescente: 9, 8, 7, 6, 5, 4, 3 e 2.
-2. Somam-se os produtos.
-3. Calcula-se o resto da divisão da soma por 11.
-4. Subtrai-se esse resto a 11. Se o resultado for 10 ou 11, o dígito de controlo é 0. Caso contrário, é o próprio resultado.
+O NIF espanhol também tem um componente de controlo, mas a sua forma depende do tipo de identificador. Por isso, a validação deve ser feita com a regra correta para cada caso, e não com um único algoritmo aplicado a tudo.
 
-Exemplo: para 12345678, a soma ponderada é 9×1 + 8×2 + 7×3 + 6×4 + 5×5 + 4×6 + 3×7 + 2×8 = 156. O resto de 156 dividido por 11 é 2. Logo, 11 − 2 = 9, e o NIF completo é 123456789. Se a lista contiver 123456780, o último dígito não corresponde ao cálculo e a linha deve ser assinalada.
-
-## Como funciona a validação do NIF espanhol
-
-O NIF espanhol de pessoas singulares tem oito dígitos seguidos de uma letra de controlo. A letra é obtida calculando o resto da divisão do número por 23 e consultando uma tabela fixa de letras, na ordem T, R, W, A, G, M, Y, F, P, D, X, B, N, J, Z, S, Q, V, H, L, C, K, E.
-
-Exemplo: 12345678 dividido por 23 dá resto 14, e a 14.ª posição da tabela é Z. O NIF correto é 12345678Z. Se a letra estiver errada, a linha é marcada.
-
-Convém ter em atenção que o NIF espanhol de pessoas singulares não é o mesmo que o NIE (número de identidade de estrangeiro), que tem outro formato. Ao preparar uma lista, deve separar-se claramente o que se pretende validar.
+Importante: a validação do dígito de controlo confirma que o número é matematicamente possível. Não confirma que o NIF existe, que pertence à entidade indicada ou que está ativo. Um número pode passar na verificação e, ainda assim, estar errado se tiver sido copiado de outro cliente com a mesma estrutura.
 
 ## Como funciona a validação do IBAN
 
-O IBAN combina um código de país, dois dígitos de controlo e o identificador da conta. Para Portugal, tem 25 caracteres e começa por PT. Para Espanha, tem 24 caracteres e começa por ES.
+O IBAN é um identificador internacional de conta bancária. Em Portugal, tem 25 caracteres e começa por PT seguido de dois dígitos de controlo e de 21 dígitos. Em Espanha, tem 24 caracteres e começa por ES, seguido de dois dígitos de controlo e de 22 dígitos.
 
-A validação por módulo 97 segue estes passos:
+A verificação usa o método módulo 97, descrito na norma internacional. O procedimento é o seguinte:
 
-1. Remove-se qualquer espaço do IBAN.
-2. Passam-se os primeiros quatro caracteres (código do país e dígitos de controlo) para o fim da cadeia.
-3. Substitui-se cada letra pelo número correspondente, em que A é 10, B é 11 e assim sucessivamente até Z, que é 35.
-4. Calcula-se o resto da divisão do número resultante por 97.
-5. Se o resto for 1, o IBAN é matematicamente consistente.
+1. Retirar os espaços e colocar tudo em maiúsculas.
+2. Mover os quatro primeiros caracteres para o fim da cadeia.
+3. Substituir cada letra pelo número correspondente, em que A vale 10, B vale 11 e assim sucessivamente até Z, que vale 35.
+4. Calcular o resto da divisão do número resultante por 97.
+5. Considerar válido se o resto for igual a 1.
 
-Este teste deteta erros de digitação, dígitos trocados e muitas omissões. Não garante, porém, que a conta exista nem que pertença ao titular indicado. É uma verificação de forma, não de existência.
+Esta verificação deteta a maioria dos erros de digitação, porque um dígito trocado ou omitido altera o resto de forma quase sempre detetável. No entanto, tal como no NIF, não prova que a conta existe nem que pertence ao titular indicado.
 
-## Exemplos práticos de erros comuns
+## Passo a passo para validar uma lista
 
-Alguns erros aparecem repetidamente em listas reais:
+Uma forma prudente de tratar uma lista de registos é a seguinte:
 
-- Espaços e separadores: IBANs escritos em grupos de quatro caracteres são válidos depois de os espaços serem removidos, mas podem falhar se a coluna for importada com os espaços como parte do valor.
-- Zeros à esquerda perdidos: ao abrir um ficheiro numa folha de cálculo, um NIF que começa por zero pode perder esse zero e passar a ter oito dígitos.
-- Letras confundidas: o O e o 0, ou o I e o 1, são trocas frequentes ao digitar à mão.
-- Dígitos transpostos: escrever dois dígitos em ordem trocada é um erro que o cálculo de controlo apanha, mas que facilmente passa na leitura.
-- Campos deslocados: uma importação com colunas desalinhadas pode colocar um IBAN no campo do NIF. A validação marca-o como inválido, o que ajuda a identificar o problema de estrutura.
+1. Exportar ou preparar o ficheiro com um campo para o NIF e outro para o IBAN, identificando cada linha com um código interno, para que os resultados possam ser associados ao registo original.
+2. Remover espaços desnecessários e uniformizar a escrita antes da validação, mas sem alterar os valores em si.
+3. Validar o NIF de cada linha e registar o resultado.
+4. Validar o IBAN de cada linha, indicando o país pelo prefixo.
+5. Rever os registos inválidos, ler o motivo indicado para cada erro e confrontar com o documento original.
+6. Corrigir na fonte, e não apenas no ficheiro de trabalho, para que o erro não reapareça na próxima importação.
+7. Guardar o resultado final, com a data da validação, para ter registo do que foi verificado.
 
-## O que uma verificação em lote deve devolver
+## Exemplo prático
 
-Para ser útil, uma verificação em lote precisa de mais do que um simples sim ou não. Deve indicar, para cada linha, qual o campo afetado e qual o motivo do erro, por exemplo, dígito de controlo incorreto ou comprimento inválido. Sem essa informação, a equipa tem de adivinhar onde está o problema.
+Imagine-se um ficheiro com três fornecedores. O primeiro tem um NIF bem formado e um IBAN português com 25 caracteres que passa o módulo 97. O segundo tem um NIF com um dígito diferente do que o cálculo produziria, o que indica um erro de digitação ou de transcrição. O terceiro tem um IBAN espanhol com um dígito trocado, que falha o módulo 97 mesmo tendo o comprimento correto.
 
-É também útil um resumo com o número total de registos, o número de válidos e o número de inválidos. Esse resumo serve de indicador rápido sobre a qualidade da lista antes de qualquer processamento.
+Neste caso, o resumo deveria indicar dois registos inválidos e um válido, e cada linha inválida deveria trazer o motivo concreto. A equipa administrativa sabe então exatamente onde concentrar a verificação, em vez de rever todo o ficheiro.
 
-Por fim, o resultado deve poder ser guardado num ficheiro CSV, para que a equipa possa filtrar as linhas com erro, corrigi-las na origem e voltar a verificar.
+## O que a validação não garante
 
-## Um fluxo de trabalho prudente
+Convém ser explícito sobre os limites deste tipo de verificação:
 
-Uma abordagem prática pode seguir estes passos:
+- Não confirma que um NIF está registado nas finanças ou que está ativo.
+- Não confirma que uma conta bancária existe, está aberta ou aceita débitos.
+- Não confirma que o titular da conta é a entidade indicada no registo.
+- Não substitui a verificação do documento original quando há dúvidas.
 
-1. Exportar a lista do sistema de origem em formato de texto ou CSV, mantendo os campos separados.
-2. Verificar o NIF e o IBAN em lote, separando as duas colunas.
-3. Rever as linhas marcadas, confirmando o dado original em documentos do cliente ou fornecedor.
-4. Corrigir na origem, e não apenas no ficheiro de trabalho, para evitar que o erro volte numa próxima importação.
-5. Repetir a verificação e guardar o resultado para registo.
+A validação serve para eliminar erros formais, que são os mais fáceis de evitar e os que mais tempo costumam fazer perder. Os restantes controlos continuam a depender de procedimentos da própria organização.
 
-## Limites que convém conhecer
+## Erros comuns
 
-A validação do dígito de controlo não substitui a confirmação junto do titular. Um NIF pode ser matematicamente correto e pertencer a outra pessoa, e um IBAN pode passar no módulo 97 sem corresponder a uma conta ativa. Estas verificações reduzem erros de digitação, mas não substituem a diligência habitual de quem gere os dados.
-
-A ferramenta cobre o NIF português e espanhol, e o IBAN de Portugal e Espanha. Outros países, outros tipos de identificador e outros formatos de conta ficam fora do seu âmbito, e os resultados para esses casos não devem ser interpretados como validação.
+- Assumir que um registo validado está correto em todos os aspetos. A validação é uma primeira barreira, não uma garantia final.
+- Corrigir apenas o ficheiro exportado e esquecer a base de dados de origem, o que faz o erro voltar na importação seguinte.
+- Misturar regras de NIF português com regras espanholas, ou aplicar a validação de IBAN de um país a outro.
+- Ignorar os espaços e hífenes introduzidos pelas pessoas, que tornam a mesma conta difícil de comparar.
+- Não registar o que foi verificado e quando, o que dificulta explicar mais tarde a origem de um dado.
 
 ## Conclusão
 
-Erros em NIF e IBAN são discretos, custosos quando descobertos tarde e fáceis de evitar com uma verificação feita logo na origem. O essencial é perceber como funcionam os dígitos de controlo, reconhecer os erros mais comuns e manter um processo que obrigue a rever as linhas assinaladas antes de os dados seguirem para faturação ou pagamentos.
+Os NIF e IBAN errados são um problema pequeno em cada linha, mas acumulam-se quando as listas crescem. Separar a verificação formal, que pode ser feita em lote e com regras claras, da verificação documental, que exige confronto com a fonte, permite trabalhar com mais segurança e com menos esforço manual.
 
 ---
 
