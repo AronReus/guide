@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://aronreus.github.io/guide/sitemap.xml
